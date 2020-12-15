@@ -1,8 +1,8 @@
 {
     "compilerOptions": {
-      "module": "system",
-      "noImplicitAny": true,
-      "outFile": "./index.js",
+      "module": "CommonJS",
+      "target": "ES6",
+      "noImplicitAny": true
     },
-    "files": ["index.ts"],
+    "files": ["index.ts"]
 }

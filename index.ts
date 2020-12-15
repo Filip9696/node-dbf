@@ -35,9 +35,9 @@ class Header {
         this.parseDate = this.parseDate.bind(this);
     }
 
-    public parse = (callback: (self: Header) => any) => {
+    public parse = (callback: (err: Error) => any) => {
         return readFile(this.filename, (err, buffer) => {
-            if (err) throw err;
+            if (err) return callback(err);
             let i;
 
             this.type = (buffer.slice(0, 1)).toString('utf-8');
@@ -55,7 +55,7 @@ class Header {
                 return _results;
             }).call(this)).map(this.parseFieldSubRecord);
 
-            return callback(this);
+            return callback(err);
         });
     };
 
@@ -108,7 +108,7 @@ export class Parser extends EventEmitter {
                 while (loc < (this.header.start + this.header.numberOfRecords * this.header.recordLength) && loc < buffer.length) {
                     this.emit('record', this.parseRecord(++sequenceNumber, buffer.slice(loc, loc += this.header.recordLength)));
                 }
-                this.emit('end', self)
+                this.emit('end');
                 return this;
             });
         });
