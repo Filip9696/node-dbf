@@ -1,0 +1,8 @@
+{
+    "compilerOptions": {
+      "module": "system",
+      "noImplicitAny": true,
+      "outFile": "./index.js",
+    },
+    "files": ["index.ts"],
+}

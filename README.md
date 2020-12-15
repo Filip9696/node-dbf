@@ -2,11 +2,11 @@ node-dbf
 ========
 
 **This fork has been modified to work with Visual Foxpro**
+Recently rewritten in typescript
 
-This is an event-based dBase file parser for very efficiently reading data from *.dbf files.
+This is an event-based dBase file parser for very efficiently reading data from Visual FoxPro files.
 
-Based on https://github.com/abstractvector/node-dbf but works without coffee and provide float type of numbers.
-F.e. correct work with VMap0 geonames base (http://gis-lab.info/data/vmap0-settl-rus/population-gislab.7z)
+Based on https://github.com/abstractvector/node-dbf but works without coffee and provides float and integer type of numbers, specifically for Visual Fox Pro \*dbf files, based on the specification for DBF files here: http://www.independent-software.com/dbase-dbf-dbt-file-format.html
 
 To get started, simply install the module using npm:
 
