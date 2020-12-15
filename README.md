@@ -12,10 +12,10 @@ To get started, simply install the module using npm:
 
     npm install @filip96/node-dbf
 
-and then `require` or `Import` it:
+and then `require` or `import` it:
 
     const Parser = require('@filip96/node-dbf');
-    Import { Parser} from '@filip96/node-dbf';
+    import { Parser } from '@filip96/node-dbf';
 
 # Classes
 
@@ -31,8 +31,9 @@ This class is the main interface for reading data from dBase files. It extends `
 
 Creates a new Parser and attaches it to the specified filename.
 
-    const Parser = require('@filip96/node-dbf');
-    
+    //const Parser = require('@filip96/node-dbf');
+    import { Parser } from '@filip96/node-dbf';
+
     let parser = new Parser('/path/to/my/dbase/file.dbf');
 
 ### parser.on(event, listener)
@@ -90,8 +91,9 @@ This event is fired once the dBase parsing is complete and there are no more rec
 
 The following code example illustrates a very simple usage for this module:
 
-    const Parser = require('@filip96/node-dbf');
-    
+    //const Parser = require('@filip96/node-dbf');
+    import { Parser } from '@filip96/node-dbf';
+
     let parser = new Parser('/path/to/my/dbase/file.dbf');
     
     parser.on('start', function(p) {
@@ -114,6 +116,5 @@ The following code example illustrates a very simple usage for this module:
 
 # TODO
 
-* Write some tests
 * Add support for field types other than Character and Numeric
 * Use `fs.readStream` instead of `fs.readFile` for increased performance
