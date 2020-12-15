@@ -7,3 +7,6 @@ package-lock.json
 
 *.dbf
 test.js
+
+index.d.ts
+index.js

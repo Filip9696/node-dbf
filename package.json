@@ -4,7 +4,7 @@
   "description": "dbf-parser for Visual FoxPro\r ========",
   "main": "index.js",
   "scripts": {
-    "build": "npx tsc --project tsconfig.json -d",
+    "build": "npx tsc --project tsconfig.json",
     "test": "node ./test.js"
   },
   "repository": {

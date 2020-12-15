@@ -12,9 +12,10 @@ To get started, simply install the module using npm:
 
     npm install @filip96/node-dbf
 
-and then `require` it:
+and then `require` or `Import` it:
 
     const Parser = require('@filip96/node-dbf');
+    Import { Parser} from '@filip96/node-dbf';
 
 # Classes
 
