@@ -12,15 +12,10 @@ interface Column {
 interface Record {
     '@sequenceNumber': number
     '@deleted': boolean
-    [key: string]: Field | number | boolean
+    [key: string]: string | number | boolean
 }
 
-interface Field {
-    type: string
-    value: string | number
-}
-
-class Header {
+export class Header {
     public filename: string;
     public type: undefined | string;
     public dateUpdated: undefined | Date;
@@ -124,14 +119,14 @@ export class Parser extends EventEmitter {
         let loc = 1;
 
         for (let i = 0; i < this.header.columns.length; i++) {
-            record[this.header.columns[i].name] = this.parseField(this.header.columns[i], buffer.slice(loc, loc += this.header.columns[i].length));
+            record[this.header.columns[i].name] = this.parseField(this.header.columns[i].type, buffer.slice(loc, loc += this.header.columns[i].length));
         }
 
         return record;
     };
 
-    private parseField = (type: string, buffer: Buffer): Field => {
-        let value: string | number = buffer.toString('utf-8').replace(/^\x20+|\x20+$/g, '');
+    private parseField = (type: string, buffer: Buffer): string | number | boolean => {
+        let value: string | number | boolean = buffer.toString('utf-8').replace(/^\x20+|\x20+$/g, '');
     
         if (type === 'I') {
             value = buffer.readUIntLE(0, buffer.byteLength)
@@ -141,9 +136,6 @@ export class Parser extends EventEmitter {
             value = Number(value);
         }
 
-        return {
-            type: type,
-            value: value
-        };
+        return value;
     };
 }
