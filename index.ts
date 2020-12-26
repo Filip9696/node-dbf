@@ -12,7 +12,7 @@ interface Column {
 interface Record {
     '@sequenceNumber': number
     '@deleted': boolean
-    [key: string]: string | number | boolean
+    [key: string]: string | number | boolean | Date
 }
 
 export class Header {
@@ -125,17 +125,22 @@ export class Parser extends EventEmitter {
         return record;
     };
 
-    private parseField = (type: string, buffer: Buffer): string | number | boolean => {
-        let value: string | number | boolean = buffer.toString('utf-8').replace(/^\x20+|\x20+$/g, '');
-    
-        if (type === 'I') {
-            value = buffer.readUIntLE(0, buffer.byteLength)
+    private parseField = (type: string, buffer: Buffer): string | number | boolean | Date => {
+        switch (type) {
+            case 'I':
+                return buffer.readUIntLE(0, buffer.byteLength);
+            case 'N':
+                return Number(buffer.toString('utf-8').replace(/^\x20+|\x20+$/g, ''));
+            case 'M':
+                return buffer.toString('hex');
+            case 'D':
+                let string = buffer.toString('utf-8').replace(/^\x20+|\x20+$/g, '');
+                string = string.substr(0, 4) + '-' + string.substr(4, 2) + '-' + string.substr(6);
+                return new Date(string);
+            case 'T':
+                return new Date(buffer.toString('utf-8').replace(/^\x20+|\x20+$/g, ''));
+            default:
+                return buffer.toString('utf-8').replace(/^\x20+|\x20+$/g, '');
         }
-    
-        if (type === 'N') {
-            value = Number(value);
-        }
-
-        return value;
     };
 }
