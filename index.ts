@@ -1,4 +1,4 @@
-import { readFile } from 'fs';
+import { readFile, openSync, readSync, closeSync } from 'fs';
 import { EventEmitter } from 'events';
 
 interface Column {
@@ -13,6 +13,19 @@ interface Record {
     '@sequenceNumber': number
     '@deleted': boolean
     [key: string]: string | number | boolean | Date
+}
+
+const partialFSReadSync = (path: string, start: number, end: number): Buffer => {
+    if (start < 0 || end < 0 || end < start || end - start > 0x3fffffff)
+        throw new Error('bad start, end');
+    if (end - start === 0)
+        return Buffer.alloc(0);
+
+    var buf = Buffer.alloc(end - start);
+    var fd = openSync(path, 'r');
+    readSync(fd, buf, 0, end - start, start);
+    closeSync(fd);
+    return buf;
 }
 
 export class Header {
@@ -30,9 +43,9 @@ export class Header {
         this.parseDate = this.parseDate.bind(this);
     }
 
-    public parse = (callback: (err: Error) => any) => {
-        return readFile(this.filename, (err, buffer) => {
-            if (err) return callback(err);
+    public parse = (callback: (err: Error | boolean) => any) => {
+        try {
+            let buffer = partialFSReadSync(this.filename, 0, 32);
             let i;
 
             this.type = (buffer.slice(0, 1)).toString('utf-8');
@@ -41,8 +54,9 @@ export class Header {
             this.start = buffer.readUInt16LE(8);
             this.recordLength = buffer.readUInt16LE(10);
 
-            this.columns = ((function() {
-                var _i, _ref, _results;
+            buffer = partialFSReadSync(this.filename, 0, this.start);
+            this.columns = ((function () {
+                let _i, _ref, _results;
                 _results = [];
                 for (i = _i = 32, _ref = this.start - 32; _i <= _ref; i = _i += 32) {
                     _results.push(buffer.slice(i, i + 32));
@@ -50,8 +64,10 @@ export class Header {
                 return _results;
             }).call(this)).map(this.parseFieldSubRecord);
 
+            return callback(false);
+        } catch (err) {
             return callback(err);
-        });
+        }
     };
 
     private parseDate = (buffer: Buffer): Date => {
@@ -86,26 +102,38 @@ export class Parser extends EventEmitter {
         this.filename = filename;
     }
 
-    public parse = (): Parser => {
-        this.emit('start', this);
-        this.header = new Header(this.filename);
-        this.header.parse((err) => {
+    public parseLine = async (lineNum: number): Promise<Record> => {
+        let loc = this.header.start + (this.header.recordLength * (lineNum-1));
+        let buffer = await partialFSReadSync(this.filename, loc, loc + this.header.recordLength);
+        return this.parseRecord(lineNum, buffer);
+    }
+
+    public parseHeader = (): Promise<Header> => {
+        return new Promise((resolve, reject) => {
+            this.emit('start', this);
+            this.header = new Header(this.filename);
+            this.header.parse((err) => {
+                if (err) return reject(err);
+                this.emit('header', this.header);
+                resolve(this.header);
+            });
+        });
+    }
+
+    public parse = async (): Promise<Parser> => {
+        if (!this.header) await this.parseHeader();
+        let sequenceNumber: number;
+        sequenceNumber = 0;
+        readFile(this.filename, (err, buffer) => {
             if (err) throw err;
 
-            let sequenceNumber: number;
-            this.emit('header', this.header);
-            sequenceNumber = 0;
-            return readFile(this.filename, (err, buffer) => {
-                if (err) throw err;
-
-                let loc;
-                loc = this.header.start;
-                while (loc < (this.header.start + this.header.numberOfRecords * this.header.recordLength) && loc < buffer.length) {
-                    this.emit('record', this.parseRecord(++sequenceNumber, buffer.slice(loc, loc += this.header.recordLength)));
-                }
-                this.emit('end');
-                return this;
-            });
+            let loc;
+            loc = this.header.start;
+            while (loc < (this.header.start + this.header.numberOfRecords * this.header.recordLength) && loc < buffer.length) {
+                this.emit('record', this.parseRecord(++sequenceNumber, buffer.slice(loc, loc += this.header.recordLength)));
+            }
+            this.emit('end');
+            return this;
         });
         return this;
     };

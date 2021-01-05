@@ -20,4 +20,6 @@ parser.on('end', () => {
     console.log('Finished parsing file');
 });
 
-parser.parse();
+parser.parseHeader();
+setTimeout(async () => console.log(await parser.parseLine(1)), 5e3);
+setTimeout(() => parser.parse(), 10e3);
